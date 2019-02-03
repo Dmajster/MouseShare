@@ -1,0 +1,41 @@
+{
+  "name": "mouseshare",
+  "version": "1.0.0",
+  "description": "Cross platform mouse sharing",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dmajster/MouseShare.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Dmajster/MouseShare/issues"
+  },
+  "homepage": "https://github.com/Dmajster/MouseShare#readme",
+  "dependencies": {
+    "electron": "^2.0.0",
+    "iohook": "^0.3.1",
+    "robotjs": "^0.5.1",
+    "websocket": "^1.0.28"
+  },
+  "iohook": {
+    "targets": [
+      "node-64",
+      "electron-57"
+    ],
+    "platforms": [
+      "win32",
+      "darwin",
+      "linux"
+    ],
+    "arches": [
+      "x64",
+      "ia32"
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Main page</title>
+</head>
+<body>
+    <p>start server: </p><button id="serverStart">start</button>
+    <p>connect to server</p> 
+    <input id="serverIp" type="text" placeholder="ip" value="localhost">
+    <input id="serverPort" type="text" placeholder="port" value="8311">
+    <button id="serverConnect">connect</button>
+    <script>
+        const ipc = require('electron').ipcRenderer;
+        const serverStart = document.getElementById('serverStart');
+        const serverConnect = document.getElementById('serverConnect');
+
+        const serverIp = document.getElementById('serverIp');
+        const serverPort = document.getElementById('serverPort');
+
+        serverStart.addEventListener('click', function () {
+            ipc.send('serverStart', {
+                "port": serverPort.value
+            });
+        });
+
+        serverConnect.addEventListener('click', function () {
+            ipc.send('serverConnect', {
+                "ip": serverIp.value,
+                "port": serverPort.value
+            });
+        });
+
+    </script>
+</body>
+</html>
