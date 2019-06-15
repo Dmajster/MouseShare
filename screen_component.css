@@ -1,0 +1,17 @@
+.screen {
+    position: absolute;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    color: #606060;
+    background: rgb(164, 173, 250);
+    font-size: 12px;
+    border-radius: 2px;
+    box-shadow: inset 0px 0px 0px 4px #606060;
+    /*box-shadow: 1px 1px 1px 2px #909090;*/
+    display: grid;
+    align-content: center;
+    text-align: center;
+}

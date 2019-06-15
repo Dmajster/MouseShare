@@ -1,0 +1,28 @@
+html,
+body {
+    padding: 0;
+    margin: 0;
+}
+
+p {
+    margin: 0;
+}
+
+.screenManager {
+    min-height: 100vh;
+}
+
+body {
+    display: grid;
+    grid-template-areas: "main aside";
+    grid-template-columns: auto 300px;
+}
+
+main {
+    grid-area: main;
+}
+
+aside {
+    grid-area: aside;
+    background-color: #a0a0a0;
+}

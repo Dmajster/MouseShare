@@ -1,38 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Main page</title>
 </head>
+
 <body>
-    <p>start server: </p><button id="serverStart">start</button>
-    <p>connect to server</p> 
-    <input id="serverIp" type="text" placeholder="ip" value="localhost">
-    <input id="serverPort" type="text" placeholder="port" value="8311">
-    <button id="serverConnect">connect</button>
-    <script>
-        const ipc = require('electron').ipcRenderer;
-        const serverStart = document.getElementById('serverStart');
-        const serverConnect = document.getElementById('serverConnect');
-
-        const serverIp = document.getElementById('serverIp');
-        const serverPort = document.getElementById('serverPort');
-
-        serverStart.addEventListener('click', function () {
-            ipc.send('serverStart', {
-                "port": serverPort.value
-            });
-        });
-
-        serverConnect.addEventListener('click', function () {
-            ipc.send('serverConnect', {
-                "ip": serverIp.value,
-                "port": serverPort.value
-            });
-        });
-
-    </script>
+    <main id="app">
+        <ScreenManagerComponent ref="screenManager"></ScreenManagerComponent>
+    </main>
+    <aside>
+        <input id="ip">
+        <input id="port">
+        <button id="host">Host</button>
+        <button id="connect">Connect</button>
+    </aside>
 </body>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<script src="screen.js"></script>
+
+<script src="screen_component.js"></script>
+<link rel="stylesheet" href="screen_component.css">
+
+<script src="screen_manager_component.js"></script>
+<link rel="stylesheet" href="screen_manager_component.css">
+
+<script>
+    var ipcRenderer = require('electron').ipcRenderer;
+
+    let ip = document.getElementById('ip');
+    let port = document.getElementById('port');
+    let host = document.getElementById('host');
+    let connect = document.getElementById('connect');
+
+    host.addEventListener('click', () => {
+        ipcRenderer.send('serverStart', {
+            "port": port.value
+        });
+    });
+
+    connect.addEventListener('click', () => {
+        ipcRenderer.send('serverConnect', {
+            "ip": ip.value,
+            "port": port.value
+        });
+    });
+</script>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+    })
+
+    ipcRenderer.on('current_screens', (event, message) => {
+        let screens = message.map(screen => new Screen(screen.Id, screen.Width, screen.Height, 0, 0, 0.1))
+        let screenManager = app.$refs.screenManager;
+
+        screenManager.Screens = screens;
+        console.log("screens", app.Screens);
+
+        let centerX = screenManager.x + screenManager.width / 2;
+        let centerY = screenManager.y + screenManager.height / 2;
+        let anchorWidth = screens[0].Width;
+        let anchorHeight = screens[0].Height;
+
+        message.forEach(screen => {
+            let x = centerX + screen.X * 0.1 - anchorWidth * 0.1 / 2;
+            let y = centerY + screen.Y * 0.1 - anchorHeight * 0.1 / 2;
+            console.log(screen.Id, [x, y]);
+            screenManager.placeScreen(screen.Id, x, y);
+        });
+        screenManager.screenCalculatePositions();
+
+        console.log(screenManager);
+    })
+</script>
+
 </html>
