@@ -57,6 +57,7 @@
         el: '#app',
         methods: {
             screenUpdate: function() {
+                console.log("update screens");
                 ipcRenderer.send('update_screens', screenManager.Screens)
             }
         }
@@ -83,6 +84,7 @@
         screenManager.screenCalculatePositions();
 
         console.log(screenManager);
+        ipcRenderer.send("update_screens", screenManager.Screens);
     })
 
     ipcRenderer.on('new_screens', (event, message) => {

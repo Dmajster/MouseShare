@@ -8,7 +8,9 @@ const machineUuid = require("machine-uuid");
 
 
 let win;
-let screens;
+let screens = [];
+
+
 
 function createWindow() {
     win = new BrowserWindow({ width: 1100, height: 600 });
@@ -46,8 +48,13 @@ ipcMain.on('serverConnect', function(event, arg) {
     startClient(arg.ip, arg.port);
 })
 
+ipcMain.on('update_screens', function(event, updatedScreens) {
+    console.log("update screens")
+    screens = updatedScreens;
+})
 
-let connections = [];
+
+let connections = {};
 
 function startServer(port) {
     console.log(`starting server on port ${port}`);
@@ -96,6 +103,7 @@ function startServer(port) {
         console.log((new Date()) + ' Connection accepted.');
 
         connection.id = wsServer.getUniqueID();
+        connections[connection.id] = connection;
 
         connection.on('message', function(message) {
             console.log(connection.id, message);
@@ -109,26 +117,24 @@ function startServer(port) {
                         newScreen.connectionId = connection.id;
                         return newScreen;
                     });
+                    console.log(newScreens);
                     win.webContents.send('new_screens', newScreens);
                     break;
             }
         });
 
-        ipcMain.on('update_screens', function(event, screens) {
+        ipcMain.on('update_screens', function(event, updatedScreens) {
             connection.send(JSON.stringify({
                 "type": "update_screens",
-                "data": screens
+                "data": updatedScreens
             }))
+            screens = updatedScreens;
+            console.log("screen update", screens);
         })
 
         connection.on('close', function(reasonCode, description) {
             console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         });
-
-        connection.send(JSON.stringify({
-            "type": "auth",
-            "data": connections[connection.id] = connection
-        }))
     });
 }
 
@@ -175,3 +181,74 @@ function startClient(ip, port) {
 
     client.connect(`ws://${ip}:${port}/`, 'echo-protocol');
 }
+
+let mouse = { x: 0, y: 0 }
+let mouseLast = { x: 0, y: 0 }
+let mouseDelta = { x: 0, y: 0 }
+let mouseSimulated = { x: 0, y: 0 }
+
+function clamp(num, min, max) {
+    return num <= min ? min : num >= max ? max : num;
+}
+
+let lastGoodScreen;
+let currentScreen;
+let lastScreen = null;
+
+iohook.on('mousemove', event => {
+    //console.log(event);
+    //console.log(screens)
+
+    mouse = { x: event.x, y: event.y };
+    simulatedMouse = {
+        x: mouse.x,
+        y: mouse.y
+    }
+
+    currentScreen = screens.find(screen => {
+        return mouse.x >= screen.RealX && mouse.x < screen.RealX + screen.Width + 4 &&
+            mouse.y >= screen.RealY && mouse.y < screen.RealY + screen.Height + 4
+    }) || null;
+
+    if (currentScreen != null) {
+
+        let correctedMouse = {
+            x: mouse.x - currentScreen.RealX,
+            y: mouse.y - currentScreen.RealY
+        }
+
+        //console.log("corrected", correctedMouse)
+
+        simulatedMouse = {
+            x: currentScreen.X + correctedMouse.x,
+            y: currentScreen.Y + correctedMouse.y
+        }
+
+
+    }
+    console.log("simulated", simulatedMouse)
+
+    let targetScreen = screens.find(screen => {
+        return screen != lastScreen && (
+            screen.X < simulatedMouse.x && simulatedMouse.x < screen.X + screen.Width &&
+            screen.Y < simulatedMouse.y && simulatedMouse.y < screen.Y + screen.Height
+        );
+    }) || null;
+
+    if (targetScreen != null) {
+        console.log(simulatedMouse, targetScreen.Id)
+    }
+
+    if (targetScreen != null && targetScreen != lastScreen) {
+        robot.moveMouse(
+            targetScreen.RealX + simulatedMouse.x - targetScreen.X,
+            targetScreen.RealY + simulatedMouse.y - targetScreen.Y
+        );
+
+        lastScreen = targetScreen;
+    }
+});
+
+
+
+iohook.start(false);

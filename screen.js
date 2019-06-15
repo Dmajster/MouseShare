@@ -3,11 +3,11 @@ class Screen {
         this.Id = id;
         this.X = x;
         this.Y = y;
-        this.realX = realX;
-        this.realY = realY;
+        this.RealX = realX;
+        this.RealY = realY;
         this.Width = width;
         this.Height = height;
-        this.connectionId = connectionId;
+        this.ConnectionId = connectionId;
         this.Scale = scale;
 
         this.VisualX = this.X;
