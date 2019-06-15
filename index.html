@@ -10,7 +10,7 @@
 
 <body>
     <main id="app">
-        <ScreenManagerComponent ref="screenManager"></ScreenManagerComponent>
+        <ScreenManagerComponent ref="screenManager" v-on:screen_update="screenUpdate();"></ScreenManagerComponent>
     </main>
     <aside>
         <input id="ip" value="127.0.0.1">
@@ -55,14 +55,19 @@
 <script>
     var app = new Vue({
         el: '#app',
+        methods: {
+            screenUpdate: function() {
+                ipcRenderer.send('update_screens', screenManager.Screens)
+            }
+        }
     })
+
+    let screenManager = app.$refs.screenManager;
 
     ipcRenderer.on('current_screens', (event, message) => {
         let screens = message.map(screen => new Screen(screen.Id, screen.Width, screen.Height, 0, 0, 0.1))
-        let screenManager = app.$refs.screenManager;
 
         screenManager.Screens = screens;
-        console.log("screens", app.Screens);
 
         let centerX = screenManager.x + screenManager.width / 2;
         let centerY = screenManager.y + screenManager.height / 2;
@@ -81,8 +86,7 @@
     })
 
     ipcRenderer.on('new_screens', (event, message) => {
-        let screens = message.map(screen => new Screen(screen.Id + 1, screen.Width, screen.Height, 0, 0, 0.1))
-        let screenManager = app.$refs.screenManager;
+        let screens = message.map(screen => new Screen(screen.Id, screen.Width, screen.Height, 0, 0, 0.1))
 
         screens = screens.filter(screen => {
             let matchingScreen = screenManager.Screens.find(otherScreen => {
@@ -94,9 +98,13 @@
 
         console.log("new screens!", screens);
 
+
+
         screens.forEach(screen => {
             screenManager.Screens.push(screen)
         });
+
+        ipcRenderer.send("new_screens", screenManager.Screens);
 
         screenManager.ResolveCollisions();
         screenManager.ResolveSnaps();
@@ -104,6 +112,11 @@
 
         screenManager.screenCalculatePositions();
     })
+
+    ipcRenderer.on('update_screens', (event, screens) => {
+        console.log('update screens', screens)
+        screenManager.Screens = screens;
+    });
 </script>
 
 </html>

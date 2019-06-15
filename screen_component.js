@@ -7,7 +7,7 @@ const ScreenComponent = Vue.component('screencomponent', {
     </div>`,
 
     props: {
-        Id: { default: -1, type: Number },
+        Id: { default: -1, type: String },
         X: { default: 0, type: Number },
         Y: { default: 0, type: Number },
         Width: { default: 1920, type: Number },

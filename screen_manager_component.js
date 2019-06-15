@@ -185,6 +185,7 @@ const ScreenManagerComponent = Vue.component('screenmanagercomponent', {
 
             screen.VisualX = event.x - this.SelectX;
             screen.VisualY = event.y - this.SelectY;
+            this.$emit('screen_update');
         },
 
         mouseReleased: function(event) {
@@ -212,6 +213,7 @@ const ScreenManagerComponent = Vue.component('screenmanagercomponent', {
             this.ResolveCollisions();
 
             this.screenCalculatePositions();
+            this.$emit('screen_update');
 
             this.screenUnselected();
         }

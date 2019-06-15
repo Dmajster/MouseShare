@@ -4,6 +4,8 @@ const iohook = require('iohook');
 const robot = require("robotjs");
 const WebSocketServer = require('websocket').server;
 const http = require('http');
+const machineUuid = require("machine-uuid");
+
 
 let win;
 let screens;
@@ -15,17 +17,19 @@ function createWindow() {
     win.webContents.on('did-finish-load', () => {
         screens = electron.screen.getAllDisplays();
 
-        screens = screens.map(screen => {
-            return {
-                Id: screen.id,
-                X: screen.bounds.x,
-                Y: screen.bounds.y,
-                Width: screen.size.width,
-                Height: screen.size.height
-            }
-        });
+        machineUuid().then(uuid => {
+            screens = screens.map(screen => {
+                return {
+                    Id: uuid + screen.id,
+                    X: screen.bounds.x,
+                    Y: screen.bounds.y,
+                    Width: screen.size.width,
+                    Height: screen.size.height
+                }
+            });
 
-        win.webContents.send('current_screens', screens);
+            win.webContents.send('current_screens', screens);
+        });
     })
 }
 
@@ -91,6 +95,14 @@ function startServer(port) {
                     break;
             }
         });
+
+        ipcMain.on('update_screens', function(event, screens) {
+            connection.send(JSON.stringify({
+                "type": "update_screens",
+                "data": screens
+            }))
+        })
+
         connection.on('close', function(reasonCode, description) {
             console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         });
@@ -120,7 +132,13 @@ function startClient(ip, port) {
             console.log('Connection Closed');
         });
         connection.on('message', function(message) {
+            console.log(JSON.parse(message.utf8Data));
+            message = JSON.parse(message.utf8Data);
 
+            if (message.type == "update_screens") {
+                let screens = message.data;
+                win.webContents.send('update_screens', screens);
+            }
         });
 
         connection.send(JSON.stringify({
