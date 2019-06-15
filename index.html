@@ -104,7 +104,7 @@
             screenManager.Screens.push(screen)
         });
 
-        ipcRenderer.send("new_screens", screenManager.Screens);
+        ipcRenderer.send("update_screens", screenManager.Screens);
 
         screenManager.ResolveCollisions();
         screenManager.ResolveSnaps();
