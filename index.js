@@ -6,13 +6,14 @@ const WebSocketServer = require('websocket').server;
 const http = require('http');
 
 let win;
+let screens;
 
 function createWindow() {
     win = new BrowserWindow({ width: 1100, height: 600 });
     win.loadFile('index.html');
 
     win.webContents.on('did-finish-load', () => {
-        let screens = electron.screen.getAllDisplays();
+        screens = electron.screen.getAllDisplays();
 
         screens = screens.map(screen => {
             return {
@@ -78,17 +79,13 @@ function startServer(port) {
 
         var connection = request.accept('echo-protocol', request.origin);
         console.log((new Date()) + ' Connection accepted.');
-        connection.on('message', function(message) {
 
+        connection.on('message', function(message) {
+            console.log(message.utf8Data);
         });
         connection.on('close', function(reasonCode, description) {
             console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         });
-
-        setInterval(() => {
-            console.log("mouse", mouse);
-            connection.send(JSON.stringify(mouse));
-        }, 1000 / 60);
     });
 
 
@@ -106,6 +103,7 @@ function startClient(ip, port) {
     });
 
     client.on('connect', function(connection) {
+
         console.log('WebSocket Client Connected');
         connection.on('error', function(error) {
             console.log("Connection Error: " + error.toString());
@@ -114,9 +112,13 @@ function startClient(ip, port) {
             console.log('Connection Closed');
         });
         connection.on('message', function(message) {
-            let mouse = JSON.parse(message.utf8Data);
-            robot.moveMouse(mouse.position.x, mouse.position.y);
+
         });
+
+        connection.send({
+            "type": "current_screens",
+            "data": screens
+        })
     });
 
     client.connect(`ws://${ip}:${port}/`, 'echo-protocol');
