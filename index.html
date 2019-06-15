@@ -65,7 +65,7 @@
     let screenManager = app.$refs.screenManager;
 
     ipcRenderer.on('current_screens', (event, message) => {
-        let screens = message.map(screen => new Screen(screen.Id, screen.Width, screen.Height, 0, 0, 0.1))
+        let screens = message.map(screen => new Screen(screen.Id, screen.Width, screen.Height, 0, 0, screen.X, screen.Y, null, 0.1))
 
         screenManager.Screens = screens;
 
@@ -86,7 +86,9 @@
     })
 
     ipcRenderer.on('new_screens', (event, message) => {
-        let screens = message.map(screen => new Screen(screen.Id, screen.Width, screen.Height, 0, 0, 0.1))
+        let screens = message.map(screen => new Screen(screen.Id, screen.Width, screen.Height, 0, 0, screen.X, screen.Y, screen.connectionId, 0.1))
+
+        console.log("all screens", screens)
 
         screens = screens.filter(screen => {
             let matchingScreen = screenManager.Screens.find(otherScreen => {
@@ -104,13 +106,13 @@
             screenManager.Screens.push(screen)
         });
 
-        ipcRenderer.send("update_screens", screenManager.Screens);
-
         screenManager.ResolveCollisions();
         screenManager.ResolveSnaps();
         screenManager.ResolveCollisions();
 
         screenManager.screenCalculatePositions();
+
+        ipcRenderer.send("update_screens", screenManager.Screens);
     })
 
     ipcRenderer.on('update_screens', (event, screens) => {
@@ -118,5 +120,6 @@
         screenManager.Screens = screens;
     });
 </script>
+
 
 </html>

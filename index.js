@@ -46,6 +46,9 @@ ipcMain.on('serverConnect', function(event, arg) {
     startClient(arg.ip, arg.port);
 })
 
+
+let connections = [];
+
 function startServer(port) {
     console.log(`starting server on port ${port}`);
 
@@ -68,6 +71,14 @@ function startServer(port) {
         autoAcceptConnections: false
     });
 
+    wsServer.getUniqueID = function() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+        }
+        return s4() + s4() + '-' + s4();
+    };
+
+
     function originIsAllowed(origin) {
         // put logic here to detect whether the specified origin is allowed.
         return true;
@@ -84,13 +95,20 @@ function startServer(port) {
         var connection = request.accept('echo-protocol', request.origin);
         console.log((new Date()) + ' Connection accepted.');
 
+        connection.id = wsServer.getUniqueID();
+
         connection.on('message', function(message) {
-            console.log(JSON.parse(message.utf8Data));
+            console.log(connection.id, message);
+            //console.log(JSON.parse(message.utf8Data));
             message = JSON.parse(message.utf8Data);
 
             switch (message.type) {
                 case "current_screens":
                     let newScreens = message.data;
+                    newScreens = newScreens.map(newScreen => {
+                        newScreen.connectionId = connection.id;
+                        return newScreen;
+                    });
                     win.webContents.send('new_screens', newScreens);
                     break;
             }
@@ -106,10 +124,15 @@ function startServer(port) {
         connection.on('close', function(reasonCode, description) {
             console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
         });
+
+        connection.send(JSON.stringify({
+            "type": "auth",
+            "data": connections[connection.id] = connection
+        }))
     });
-
-
 }
+
+let clientId;
 
 function startClient(ip, port) {
     console.log(`connecting to ws://${ip}:${port}/`);
@@ -135,7 +158,9 @@ function startClient(ip, port) {
             console.log(JSON.parse(message.utf8Data));
             message = JSON.parse(message.utf8Data);
 
-            if (message.type == "update_screens") {
+            if (message.type == "auth") {
+                clientId = message.data;
+            } else if (message.type == "update_screens") {
                 let screens = message.data;
                 win.webContents.send('update_screens', screens);
             }
@@ -143,6 +168,7 @@ function startClient(ip, port) {
 
         connection.send(JSON.stringify({
             "type": "current_screens",
+            "clientId": clientId,
             "data": screens
         }));
     });

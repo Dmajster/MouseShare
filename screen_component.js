@@ -2,6 +2,7 @@ const ScreenComponent = Vue.component('screencomponent', {
     template: `
     <div class="screen" :style="style" v-on:mousedown.left="selected">
         <p>{{ Id }}</p>
+        <p>{{ ConnectionId }}</p>
         <p>{{ Width }} X {{ Height }}</p>
         <p>X:{{ X.toFixed(1)}} Y: {{Y.toFixed(1)}}</p>
     </div>`,
@@ -12,6 +13,7 @@ const ScreenComponent = Vue.component('screencomponent', {
         Y: { default: 0, type: Number },
         Width: { default: 1920, type: Number },
         Height: { default: 1080, type: Number },
+        ConnectionId: { default: "None", type: String },
         Scale: { default: 0.1, type: Number },
         VisualX: { default: 0, type: Number },
         VisualY: { default: 0, type: Number },
@@ -23,8 +25,7 @@ const ScreenComponent = Vue.component('screencomponent', {
                 left: `${this.VisualX}px`,
                 top: `${this.VisualY}px`,
                 width: `${this.Width * this.Scale}px`,
-                height: `${this.Height * this.Scale}px`,
-                'z-index': `${this.VisualY}`
+                height: `${this.Height * this.Scale}px`
             };
         }
     },

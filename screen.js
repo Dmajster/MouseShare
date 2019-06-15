@@ -1,10 +1,13 @@
 class Screen {
-    constructor(id, width, height, x, y, scale) {
+    constructor(id, width, height, x, y, realX, realY, connectionId, scale) {
         this.Id = id;
         this.X = x;
         this.Y = y;
+        this.realX = realX;
+        this.realY = realY;
         this.Width = width;
         this.Height = height;
+        this.connectionId = connectionId;
         this.Scale = scale;
 
         this.VisualX = this.X;
