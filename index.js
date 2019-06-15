@@ -81,7 +81,15 @@ function startServer(port) {
         console.log((new Date()) + ' Connection accepted.');
 
         connection.on('message', function(message) {
-            console.log(message.utf8Data);
+            console.log(JSON.parse(message.utf8Data));
+            message = JSON.parse(message.utf8Data);
+
+            switch (message.type) {
+                case "current_screens":
+                    let newScreens = message.data;
+                    win.webContents.send('new_screens', newScreens);
+                    break;
+            }
         });
         connection.on('close', function(reasonCode, description) {
             console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
@@ -115,10 +123,10 @@ function startClient(ip, port) {
 
         });
 
-        connection.send({
+        connection.send(JSON.stringify({
             "type": "current_screens",
             "data": screens
-        })
+        }));
     });
 
     client.connect(`ws://${ip}:${port}/`, 'echo-protocol');

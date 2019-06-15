@@ -13,8 +13,8 @@
         <ScreenManagerComponent ref="screenManager"></ScreenManagerComponent>
     </main>
     <aside>
-        <input id="ip">
-        <input id="port">
+        <input id="ip" value="127.0.0.1">
+        <input id="port" value="8311">
         <button id="host">Host</button>
         <button id="connect">Connect</button>
     </aside>
@@ -78,6 +78,31 @@
         screenManager.screenCalculatePositions();
 
         console.log(screenManager);
+    })
+
+    ipcRenderer.on('new_screens', (event, message) => {
+        let screens = message.map(screen => new Screen(screen.Id + 1, screen.Width, screen.Height, 0, 0, 0.1))
+        let screenManager = app.$refs.screenManager;
+
+        screens = screens.filter(screen => {
+            let matchingScreen = screenManager.Screens.find(otherScreen => {
+                return screen.Id == otherScreen.Id
+            }) || null
+
+            return matchingScreen == null;
+        })
+
+        console.log("new screens!", screens);
+
+        screens.forEach(screen => {
+            screenManager.Screens.push(screen)
+        });
+
+        screenManager.ResolveCollisions();
+        screenManager.ResolveSnaps();
+        screenManager.ResolveCollisions();
+
+        screenManager.screenCalculatePositions();
     })
 </script>
 
