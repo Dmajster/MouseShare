@@ -216,6 +216,9 @@ let currentScreen = null;
 let allowMouseHooks = false;
 
 iohook.on('mouseclick', event => {
+    if (currentScreen == null) {
+        return;
+    }
     connections[currentScreen.ConnectionId].send(JSON.stringify({
         "type": "mouse_click",
         "data": event
@@ -223,6 +226,9 @@ iohook.on('mouseclick', event => {
 });
 
 iohook.on('mousewheel', event => {
+    if (currentScreen == null) {
+        return;
+    }
     connections[currentScreen.ConnectionId].send(JSON.stringify({
         "type": "mouse_wheel",
         "data": event
@@ -314,6 +320,10 @@ iohook.on('mousemove', event => {
 });
 
 setInterval(() => {
+    if (currentScreen == null) {
+        return;
+    }
+
     if (!mouseOnDomesticScreen) {
         let mouseReal = {
             x: currentScreen.RealX + (mouseEmulated.x - currentScreen.X),
