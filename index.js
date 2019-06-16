@@ -216,7 +216,7 @@ let currentScreen = null;
 let allowMouseHooks = false;
 
 iohook.on('mouseclick', event => {
-    if (currentScreen == null) {
+    if (currentScreen == null || currentScreen.ConnectionId == null) {
         return;
     }
     connections[currentScreen.ConnectionId].send(JSON.stringify({
@@ -226,7 +226,7 @@ iohook.on('mouseclick', event => {
 });
 
 iohook.on('mousewheel', event => {
-    if (currentScreen == null) {
+    if (currentScreen == null || currentScreen.ConnectionId == null) {
         return;
     }
     connections[currentScreen.ConnectionId].send(JSON.stringify({
@@ -320,7 +320,7 @@ iohook.on('mousemove', event => {
 });
 
 setInterval(() => {
-    if (currentScreen == null) {
+    if (currentScreen == null || currentScreen.ConnectionId == null) {
         return;
     }
 
