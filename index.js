@@ -188,6 +188,10 @@ function startClient(ip, port) {
                 let mouse = message.data;
 
                 robot.scrollMouse(0, mouse.amount * mouse.rotation * 10);
+            }  else if (message.type == "key_down") {
+                let keyboard = message.data;
+
+                robot.keyTap(String.fromCharCode(keyboard.keycode));
             }
         });
 
@@ -222,6 +226,16 @@ iohook.on('mouseclick', event => {
     }
     connections[currentScreen.ConnectionId].send(JSON.stringify({
         "type": "mouse_click",
+        "data": event
+    }));
+});
+
+iohook.on('mousewheel', event => {
+    if (currentScreen == null || currentScreen.ConnectionId == null) {
+        return;
+    }
+    connections[currentScreen.ConnectionId].send(JSON.stringify({
+        "type": "key_down",
         "data": event
     }));
 });
