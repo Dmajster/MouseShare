@@ -169,6 +169,13 @@ function startClient(ip, port) {
             } else if (message.type == "update_screens") {
                 let screens = message.data;
                 win.webContents.send('update_screens', screens);
+            } else if (message.type == "mouse_update") {
+                let mouse = message.data;
+
+                robot.moveMouse(
+                    mouse.x,
+                    mouse.y
+                );
             }
         });
 
