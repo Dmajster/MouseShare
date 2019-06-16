@@ -240,10 +240,22 @@ iohook.on('mousemove', event => {
     }
 
     if (targetScreen != null && targetScreen != lastScreen) {
-        robot.moveMouse(
-            targetScreen.RealX + simulatedMouse.x - targetScreen.X,
-            targetScreen.RealY + simulatedMouse.y - targetScreen.Y
-        );
+        if (targetScreen.ConnectionId == null) {
+            robot.moveMouse(
+                targetScreen.RealX + simulatedMouse.x - targetScreen.X,
+                targetScreen.RealY + simulatedMouse.y - targetScreen.Y
+            );
+        } else {
+            console.log("Send to foreign screen");
+            connections[targetScreen.ConnectionId].send(JSON.stringify({
+                "type": "mouse_update",
+                "data": {
+                    x: targetScreen.RealX + simulatedMouse.x - targetScreen.X,
+                    y: targetScreen.RealY + simulatedMouse.y - targetScreen.Y
+                }
+            }));
+        }
+
 
         lastScreen = targetScreen;
     }
