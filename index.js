@@ -26,8 +26,8 @@ function createWindow() {
                     Id: uuid + screen.id,
                     X: screen.bounds.x,
                     Y: screen.bounds.y,
-                    Width: screen.size.width,
-                    Height: screen.size.height
+                    Width: screen.size.width * screen.scaleFactor,
+                    Height: screen.size.height * screen.scaleFactor
                 }
             });
 
@@ -187,7 +187,7 @@ function startClient(ip, port) {
             } else if (message.type == "mouse_wheel") {
                 let mouse = message.data;
 
-                robot.scrollMouse(0, mouse.amount);
+                robot.scrollMouse(0, mouse.amount * mouse.rotation * 10 );
             }
         });
 
