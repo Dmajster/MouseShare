@@ -21,6 +21,7 @@ function createWindow() {
 
         machineUuid().then(uuid => {
             screens = screens.map(screen => {
+                console.log(screen);
                 return {
                     Id: uuid + screen.id,
                     X: screen.bounds.x,
@@ -129,6 +130,9 @@ function startServer(port) {
                 "data": updatedScreens
             }))
             screens = updatedScreens;
+
+            allowMouseHooks = true;
+
             console.log("screen update", screens);
         })
 
@@ -176,6 +180,14 @@ function startClient(ip, port) {
                     mouse.x,
                     mouse.y
                 );
+            } else if (message.type == "mouse_click") {
+                let mouse = message.data;
+
+                robot.mouseClick();
+            } else if (message.type == "mouse_wheel") {
+                let mouse = message.data;
+
+                robot.scrollMouse(0, mouse.amount);
             }
         });
 
@@ -189,85 +201,132 @@ function startClient(ip, port) {
     client.connect(`ws://${ip}:${port}/`, 'echo-protocol');
 }
 
-let mouse = { x: 0, y: 0 }
-let mouseLast = { x: 0, y: 0 }
-let mouseDelta = { x: 0, y: 0 }
-let mouseSimulated = { x: 0, y: 0 }
-
-function clamp(num, min, max) {
-    return num <= min ? min : num >= max ? max : num;
+let findCurrentScreen = (mouse) => {
+    return screens.find(screen => {
+        return screen.X < mouse.x && mouse.x < (screen.X + screen.Width) &&
+            screen.Y < mouse.y && mouse.y < (screen.Y + screen.Height);
+    }) || null;
 }
 
-let lastGoodScreen;
-let currentScreen;
-let lastScreen = null;
+let mouseOnDomesticScreen = true;
+let mouseEmulated = null;
+let mouseLast = null;
+let lastEmulatedScreen = null;
+let currentScreen = null;
+let allowMouseHooks = false;
+
+iohook.on('mouseclick', event => {
+    connections[currentScreen.ConnectionId].send(JSON.stringify({
+        "type": "mouse_click",
+        "data": event
+    }));
+});
+
+iohook.on('mousewheel', event => {
+    connections[currentScreen.ConnectionId].send(JSON.stringify({
+        "type": "mouse_wheel",
+        "data": event
+    }));
+});
 
 iohook.on('mousemove', event => {
-    //console.log(event);
-    //console.log(screens)
-
-    mouse = { x: event.x, y: event.y };
-    simulatedMouse = {
-        x: mouse.x,
-        y: mouse.y
+    if (!allowMouseHooks) {
+        return;
     }
 
-    currentScreen = screens.find(screen => {
-        return mouse.x >= screen.RealX && mouse.x < screen.RealX + screen.Width + 4 &&
-            mouse.y >= screen.RealY && mouse.y < screen.RealY + screen.Height + 4
-    }) || null;
+    if (mouseEmulated == null) {
+        mouseEmulated = { x: event.x, y: event.y }
+        mouseLast = { x: event.x, y: event.y }
+    }
 
-    if (currentScreen != null) {
+    if (currentScreen == null) {
+        currentScreen = findCurrentScreen(event);
+    }
 
-        let correctedMouse = {
-            x: mouse.x - currentScreen.RealX,
-            y: mouse.y - currentScreen.RealY
+    if (currentScreen == null) {
+        return;
+    }
+
+    if (mouseOnDomesticScreen) {
+
+        if (isNaN(mouseEmulated.x) || isNaN(mouseEmulated.y)) {
+            mouseEmulated = { x: event.x, y: event.y }
         }
 
-        //console.log("corrected", correctedMouse)
-
-        simulatedMouse = {
-            x: currentScreen.X + correctedMouse.x,
-            y: currentScreen.Y + correctedMouse.y
+        let mouseCorrected = {
+            x: event.x - currentScreen.RealX,
+            y: event.y - currentScreen.RealY
         }
 
+        mouseEmulated = {
+            x: mouseCorrected.x + currentScreen.X,
+            y: mouseCorrected.y + currentScreen.Y
+        }
 
+        console.log("domestic", [mouseEmulated, event, currentScreen])
+    } else {
+        let centerX = currentScreen.RealX + currentScreen.Width / 2;
+        let centerY = currentScreen.RealY + currentScreen.Height / 2;
+        let bounds = 200;
+
+        let mouseDelta = { x: event.x - mouseLast.x, y: event.y - mouseLast.y }
+        mouseLast = { x: event.x, y: event.y }
+
+        if (Math.abs(event.x - centerX) > bounds || Math.abs(event.y - centerY) > bounds) {
+            robot.moveMouse(centerX, centerY);
+            mouseLast = { x: centerX, y: centerY }
+        }
+
+        mouseEmulated.x += mouseDelta.x;
+        mouseEmulated.y += mouseDelta.y;
+        console.log("foreign", mouseEmulated)
     }
-    console.log("simulated", simulatedMouse)
 
-    let targetScreen = screens.find(screen => {
-        return screen != lastScreen && (
-            screen.X < simulatedMouse.x && simulatedMouse.x < screen.X + screen.Width &&
-            screen.Y < simulatedMouse.y && simulatedMouse.y < screen.Y + screen.Height
-        );
-    }) || null;
+    let viableScreens = screens.filter(screen => {
+        return screen.X < mouseEmulated.x && mouseEmulated.x < (screen.X + screen.Width) &&
+            screen.Y < mouseEmulated.y && mouseEmulated.y < (screen.Y + screen.Height);
+    }) || [];
 
-    if (targetScreen != null) {
-        console.log(simulatedMouse, targetScreen.Id)
-    }
+    //console.log(viableScreens);
 
-    if (targetScreen != null && targetScreen != lastScreen) {
-        if (targetScreen.ConnectionId == null) {
-            robot.moveMouse(
-                targetScreen.RealX + simulatedMouse.x - targetScreen.X,
-                targetScreen.RealY + simulatedMouse.y - targetScreen.Y
-            );
+    if (viableScreens.length > 0 && viableScreens[0] != lastEmulatedScreen) {
+        let mouseReal = {
+            x: viableScreens[0].RealX + (mouseEmulated.x - viableScreens[0].X),
+            y: viableScreens[0].RealY + (mouseEmulated.y - viableScreens[0].Y)
+        }
+        console.log("hop");
+
+        lastEmulatedScreen = viableScreens[0]
+        currentScreen = viableScreens[0];
+        mouseOnDomesticScreen = currentScreen.ConnectionId == null;
+
+        if (mouseOnDomesticScreen) {
+            robot.moveMouse(mouseReal.x, mouseReal.y);
         } else {
-            console.log("Send to foreign screen");
-            connections[targetScreen.ConnectionId].send(JSON.stringify({
+            connections[currentScreen.ConnectionId].send(JSON.stringify({
                 "type": "mouse_update",
-                "data": {
-                    x: targetScreen.RealX + simulatedMouse.x - targetScreen.X,
-                    y: targetScreen.RealY + simulatedMouse.y - targetScreen.Y
-                }
+                "data": mouseReal
             }));
         }
 
-
-        lastScreen = targetScreen;
+        console.log(mouseOnDomesticScreen)
     }
 });
 
+setInterval(() => {
+    if (!mouseOnDomesticScreen) {
+        let mouseReal = {
+            x: currentScreen.RealX + (mouseEmulated.x - currentScreen.X),
+            y: currentScreen.RealY + (mouseEmulated.y - currentScreen.Y)
+        }
+
+        connections[currentScreen.ConnectionId].send(JSON.stringify({
+            "type": "mouse_update",
+            "data": mouseReal
+        }));
+    }
+
+}, 1000 / 60)
 
 
 iohook.start(false);
