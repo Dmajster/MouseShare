@@ -187,7 +187,7 @@ function startClient(ip, port) {
             } else if (message.type == "mouse_wheel") {
                 let mouse = message.data;
 
-                robot.scrollMouse(0, mouse.amount * mouse.rotation * 10 );
+                robot.scrollMouse(0, mouse.amount * mouse.rotation * 10);
             }
         });
 
@@ -210,6 +210,7 @@ let findCurrentScreen = (mouse) => {
 
 let mouseOnDomesticScreen = true;
 let mouseEmulated = null;
+let mouseEmulatedLast = null;
 let mouseLast = null;
 let lastEmulatedScreen = null;
 let currentScreen = null;
@@ -285,6 +286,7 @@ iohook.on('mousemove', event => {
 
         mouseEmulated.x += mouseDelta.x;
         mouseEmulated.y += mouseDelta.y;
+
         console.log("foreign", mouseEmulated)
     }
 
@@ -324,10 +326,19 @@ setInterval(() => {
         return;
     }
 
+    if (mouseEmulatedLast != null && mouseEmulatedLast.x == mouseEmulated.x && mouseEmulatedLast.y == mouseEmulated.y) {
+        return;
+    }
+
     if (!mouseOnDomesticScreen) {
         let mouseReal = {
             x: currentScreen.RealX + (mouseEmulated.x - currentScreen.X),
             y: currentScreen.RealY + (mouseEmulated.y - currentScreen.Y)
+        }
+
+        mouseEmulatedLast = {
+            x: mouseEmulated.x,
+            y: mouseEmulated.y
         }
 
         connections[currentScreen.ConnectionId].send(JSON.stringify({
@@ -339,4 +350,4 @@ setInterval(() => {
 }, 1000 / 60)
 
 
-iohook.start(false);
+iohook.start(false)
