@@ -188,7 +188,7 @@ function startClient(ip, port) {
                 let mouse = message.data;
 
                 robot.scrollMouse(0, mouse.amount * mouse.rotation * 10);
-            }  else if (message.type == "key_down") {
+            } else if (message.type == "key_down") {
                 let keyboard = message.data;
 
                 robot.keyTap(String.fromCharCode(keyboard.keycode));
@@ -230,7 +230,7 @@ iohook.on('mouseclick', event => {
     }));
 });
 
-iohook.on('mousewheel', event => {
+iohook.on('keydown', event => {
     if (currentScreen == null || currentScreen.ConnectionId == null) {
         return;
     }
