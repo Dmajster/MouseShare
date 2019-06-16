@@ -5,7 +5,7 @@ const robot = require("robotjs");
 const WebSocketServer = require('websocket').server;
 const http = require('http');
 const machineUuid = require("machine-uuid");
-
+const keycode = require("keycode");
 
 let win;
 let screens = [];
@@ -190,8 +190,10 @@ function startClient(ip, port) {
                 robot.scrollMouse(0, mouse.amount * mouse.rotation * 10);
             }  else if (message.type == "key_down") {
                 let keyboard = message.data;
-
-                robot.keyTap(String.fromCharCode(keyboard.keycode));
+                let keyString = keycode(keyboard.rawcode);
+                console.log(keyString);
+                
+                robot.keyTap(keyString);
             }
         });
 
