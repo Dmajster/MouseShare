@@ -5,13 +5,15 @@
     -khtml-user-select: none;
     -webkit-user-select: none;
     -o-user-select: none;
-    color: #606060;
-    background: rgb(164, 173, 250);
+    color: white;
+    background: #284cef;
     font-size: 12px;
     border-radius: 2px;
-    box-shadow: inset 0px 0px 0px 4px #606060;
+    box-shadow: inset 0px 0px 0px 4px #1e3ab4;
     /*box-shadow: 1px 1px 1px 2px #909090;*/
     display: grid;
     align-content: center;
-    text-align: center;
+    justify-content: center;
+    text-align: left;
+    font-family: sans-serif;
 }

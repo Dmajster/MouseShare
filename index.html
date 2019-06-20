@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Main page</title>
+    <title>Mouse Share v0.01</title>
 </head>
 
 <body>
@@ -13,10 +13,11 @@
         <ScreenManagerComponent ref="screenManager" v-on:screen_update="screenUpdate();"></ScreenManagerComponent>
     </main>
     <aside>
-        <input id="ip" value="127.0.0.1">
-        <input id="port" value="8311">
-        <button id="host">Host</button>
+        <input id="ip" placeholder="IP">
+        <input id="port" placeholder="Port">
         <button id="connect">Connect</button>
+        <p id="or">or</p>
+        <button id="host">Host</button>
     </aside>
 </body>
 <link rel="stylesheet" href="style.css">
@@ -56,7 +57,7 @@
     var app = new Vue({
         el: '#app',
         methods: {
-            screenUpdate: function() {
+            screenUpdate: function () {
                 console.log("update screens");
                 ipcRenderer.send('update_screens', screenManager.Screens)
             }

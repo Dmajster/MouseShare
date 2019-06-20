@@ -24,5 +24,38 @@ main {
 
 aside {
     grid-area: aside;
-    background-color: #a0a0a0;
+    display: grid;
+    align-content: start;
+    background-color: #eee;
+    padding: 20px;
+}
+
+#ip, #port, #connect, #host{
+    border-radius: 20px;
+    padding: 5px 20px;
+    font-size: 18px;
+    background-color: #e6e6e6;
+    color: #444;
+    border: 2px solid #ddd;
+}
+
+#connect, #host {
+    margin: 0 60px;
+
+    background-color: #284cef;
+    border: 2px solid #1e3ab4;
+    color:white;
+}
+
+#or {
+    font-size: 20px;
+    text-align: center;
+}
+
+#port, #connect {
+    margin-top: 10px;
+}
+
+#or {
+    margin: 20px;
 }

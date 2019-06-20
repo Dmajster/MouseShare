@@ -1,10 +1,10 @@
 const ScreenComponent = Vue.component('screencomponent', {
     template: `
     <div class="screen" :style="style" v-on:mousedown.left="selected">
-        <p>{{ Id }}</p>
-        <p>{{ ConnectionId }}</p>
-        <p>{{ Width }} X {{ Height }}</p>
-        <p>X:{{ X.toFixed(1)}} Y: {{Y.toFixed(1)}}</p>
+        <p>Owner: {{ ConnectionId || 'Host' }}</p>
+        <p>ID: {{ Id.substring(0,18) }}</p>
+        <p>Dimensions: {{ Width }} X {{ Height }}</p>
+        <p>Position: {{ X.toFixed(1)}},{{Y.toFixed(1)}}</p>
     </div>`,
 
     props: {
