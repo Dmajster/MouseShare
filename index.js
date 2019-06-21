@@ -1,5 +1,5 @@
 const electron = require('electron')
-const { ipcMain, app, BrowserWindow } = require('electron');
+const { ipcMain, app, BrowserWindow, Tray, Menu } = require('electron');
 const iohook = require('iohook');
 const robot = require("robotjs");
 const WebSocketServer = require('websocket').server;
@@ -15,6 +15,34 @@ let screens = [];
 function createWindow() {
     win = new BrowserWindow({ width: 1100, height: 600 });
     win.loadFile('index.html');
+
+    win.on('minimize',function(event){
+        event.preventDefault();
+        win.hide();
+    });
+    
+    win.on('close', function (event) {
+        if(!app.isQuiting){
+            event.preventDefault();
+            win.hide();
+        }
+    
+        return false;
+    });
+
+    tray = new Tray('./favicon.ico')
+
+    var contextMenu = Menu.buildFromTemplate([
+        { label: 'Show App', click:  function(){
+            win.show();
+        } },
+        { label: 'Quit', click:  function(){
+            app.isQuiting = true;
+            app.quit();
+        } }
+    ]);
+    tray.setToolTip('Mouse share')
+    tray.setContextMenu(contextMenu)
 
     win.webContents.on('did-finish-load', () => {
         screens = electron.screen.getAllDisplays();
