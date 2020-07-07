@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/Dmajster/MouseShare#readme",
   "dependencies": {
-    "electron": "^2.0.18",
+    "electron": "^7.2.4",
     "iohook": "^0.3.1",
     "keycode": "^2.2.0",
     "machine-uuid": "^1.2.0",
